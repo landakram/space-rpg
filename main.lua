@@ -152,13 +152,7 @@ function loadStartPoint(map)
     return defaultPlayer
 end
 
-function love.load()
-    createEntityTypes()
-    createSystemTypes()
-
-    map = sti("map.lua")
-    startPoint = loadStartPoint(map)
-
+function createPlayer(startPoint)
     local sprite = love.graphics.newImage("jedi.png")
 
     local g = anim8.newGrid(32, 48, sprite:getWidth(), sprite:getHeight())
@@ -176,14 +170,26 @@ function love.load()
     player:add(Velocity(0, 0, SPEED))
     player:add(Animations(animations.down, animations))
 
+    return player
+end
+
+function love.load()
+    createEntityTypes()
+    createSystemTypes()
+
+    map = sti("map.lua")
+
+    startPoint = loadStartPoint(map)
+    local player = createPlayer(startPoint)
+
     engine = Engine()
     engine:addEntity(player)
 
     engine:addSystem(InteractiveAnimatedMoveSystem(MoveSystem()))
 
-    map:addCustomLayer("Sprites", 2)
     engine:addSystem(MapSystem(map), "draw")
 
+    map:addCustomLayer("Sprites", 2)
     local layer = map.layers["Sprites"]
     engine:addSystem(AnimatedDrawSystem(layer))
 end
