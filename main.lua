@@ -8,27 +8,150 @@ lovetoys.initialize({
 local lume = require "lib.lume"
 local inspect = require "lib.inspect"
 
-local player
 local SPEED = 100
 
 function createEntityTypes()
     Position = Component.create("position", {"x", "y"}, {x = 0, y = 0})
     Velocity = Component.create("velocity", {"vx", "vy", "speed"})
-    Animations = Component.create("animations", {"animation", "animations"})
-    Sprite = Component.create("sprite", {"image"})
+    Animations = Component.create("animations", {"image", "animation", "animations"})
+    Input = Component.create("input", {"movement"}, {movement = {}})
+    Interactive = Component.create("interactive", {})
+    AI = Component.create("ai", {"movement"}, {movement = {tickTime = 0}})
+end
+
+function automatedInputSystem()
+    AutomatedInputSystem = class("AutomatedInputSystem", System)
+
+    function AutomatedInputSystem:initialize()
+        System.initialize(self)
+        self.lastTickTime = os.time()
+    end
+
+    function AutomatedInputSystem:requires()
+        return {"ai", "input", "position", "velocity"}
+    end
+
+    function AutomatedInputSystem:update(dt)
+        for _, entity in pairs(self.targets) do
+            local ai = entity:get("ai")
+            local input = entity:get("input")
+
+            if self.lastTickTime + ai.movement.tickTime < os.time() then
+                input.movement = lume.weightedchoice({
+                        ["up"] = 1,
+                        ["down"] = 1,
+                        ["left"] = 1,
+                        ["right"] = 1,
+                        ["none"] = 5
+                })
+                self.lastTickTime = os.time()
+            end
+        end
+    end
+end
+
+function interactiveInputSystem()
+    InteractiveInputSystem = class("InteractiveInputSystem", System)
+
+    function InteractiveInputSystem:requires()
+        return {"interactive", "input", "position", "velocity"}
+    end
+
+    function InteractiveInputSystem:update(dt)
+        for _, entity in pairs(self.targets) do
+            local input = entity:get("input")
+
+            if love.keyboard.isDown("w") then
+                input.movement = "up"
+            elseif love.keyboard.isDown("s") then
+                input.movement = "down"
+            elseif love.keyboard.isDown("a") then
+                input.movement = "left"
+            elseif love.keyboard.isDown("d") then
+                input.movement = "right"
+            else
+                input.movement = "none"
+            end
+        end
+    end
 end
 
 function moveSystem()
     MoveSystem = class("MoveSystem", System)
 
     function MoveSystem:requires()
-        return {"position", "velocity"}
+        return {"input", "velocity"}
     end
 
     function MoveSystem:update(dt)
         for _, entity in pairs(self.targets) do
+            local input = entity:get("input")
+            local velocity = entity:get("velocity")
+            if input.movement == "up" then
+                velocity.vx = 0
+                velocity.vy = -velocity.speed
+            elseif input.movement == "down" then
+                velocity.vx = 0
+                velocity.vy = velocity.speed
+            elseif input.movement == "left" then
+                velocity.vx = -velocity.speed
+                velocity.vy = 0
+            elseif input.movement == "right" then
+                velocity.vx = velocity.speed
+                velocity.vy = 0
+            elseif input.movement == "none" then
+                velocity.vx = 0
+                velocity.vy = 0
+            end
+        end
+    end
+end
+
+function animationSystem()
+    AnimationSystem = class("AnimationSystem", System)
+
+    function AnimationSystem:requires()
+        return {"velocity", "animations"}
+    end
+
+    function AnimationSystem:update(dt)
+        for _, entity in pairs(self.targets) do
+            local velocity = entity:get("velocity")
+            local animations = entity:get("animations")
+
+            if velocity.vy < 0 then
+                animations.animation = animations.animations.up
+                animations.animation:resume()
+            elseif velocity.vy > 0 then
+                animations.animation = animations.animations.down
+                animations.animation:resume()
+            elseif velocity.vx < 0 then
+                animations.animation = animations.animations.left
+                animations.animation:resume()
+            elseif velocity.vx > 0 then
+                animations.animation = animations.animations.right
+                animations.animation:resume()
+            else
+                animations.animation:pause()
+            end
+
+            animations.animation:update(dt)
+        end
+    end
+end
+
+function positionSystem()
+    PositionSystem = class("PositionSystem", System)
+
+    function PositionSystem:requires()
+        return {"position", "velocity"}
+    end
+
+    function PositionSystem:update(dt)
+        for _, entity in pairs(self.targets) do
             local position = entity:get("position")
             local velocity = entity:get("velocity")
+
             position.x = position.x + velocity.vx * dt
             position.y = position.y + velocity.vy * dt
         end
@@ -39,103 +162,26 @@ function animatedDrawSystem()
     AnimatedDrawSystem = class("AnimatedDrawSystem", System)
 
     function AnimatedDrawSystem:requires()
-        return {"position", "animations", "sprite"}
+        return {"position", "animations"}
     end
 
-    function AnimatedDrawSystem:initialize(layer)
-        self.layer = layer
-
-        function self.layer.draw()
-            for _, entity in pairs(self.targets) do
-                local position = entity:get("position")
-                local animations = entity:get("animations")
-                local sprite = entity:get("sprite")
-
-                animations.animation:draw(sprite.image, position.x, position.y)
-            end
-        end
-        
-        System:initialize()
-    end
-end
-
-function interactiveAnimatedMoveSystem()
-    InteractiveAnimatedMoveSystem = class("InteractiveAnimatedMoveSystem", System)
-
-    function InteractiveAnimatedMoveSystem:initialize(moveSystem)
-        self.moveSystem = moveSystem
-        System:initialize()
-    end
-
-    function InteractiveAnimatedMoveSystem:requires()
-        return lume.extend({"animations"}, self.moveSystem:requires())
-    end
-
-    function InteractiveAnimatedMoveSystem:update(dt)
+    function AnimatedDrawSystem:draw()
         for _, entity in pairs(self.targets) do
-            local velocity = entity:get("velocity")
+            local position = entity:get("position")
             local animations = entity:get("animations")
 
-            if love.keyboard.isDown("w") then
-                velocity.vx = 0
-                velocity.vy = -velocity.speed
-                animations.animation = animations.animations.up
-                animations.animation:resume()
-            elseif love.keyboard.isDown("s") then
-                velocity.vx = 0
-                velocity.vy = velocity.speed
-                animations.animation = animations.animations.down
-                animations.animation:resume()
-            elseif love.keyboard.isDown("a") then
-                velocity.vx = -velocity.speed
-                velocity.vy = 0
-                animations.animation = animations.animations.left
-                animations.animation:resume()
-            elseif love.keyboard.isDown("d") then
-                velocity.vx = velocity.speed
-                velocity.vy = 0
-                animations.animation = animations.animations.right
-                animations.animation:resume()
-            else
-                velocity.vx = 0
-                velocity.vy = 0
-                animations.animation:pause()
-            end
-
-            self.moveSystem:update(dt)
-            animations.animation:update(dt)
+            animations.animation:draw(animations.image, position.x, position.y)
         end
-    end
-
-    -- Unfortunate override as part of composing systems.
-    -- Not sure if this is an intended use-case for systems.
-    function InteractiveAnimatedMoveSystem:addEntity(entity)
-        System:addEntity(entity)
-        self.moveSystem:addEntity(entity)
-    end
-end
-
-function mapSystem()
-    MapSystem = class("MapSystem", System)
-
-    function MapSystem:initialize(map)
-        self.map = map
-    end
-
-    function MapSystem:requires()
-        return {}
-    end
-
-    function MapSystem:draw()
-        map:draw()
     end
 end
 
 function createSystemTypes()
+    automatedInputSystem()
+    interactiveInputSystem()
+    animationSystem()
+    positionSystem()
     moveSystem()
     animatedDrawSystem()
-    interactiveAnimatedMoveSystem()
-    mapSystem()
 end
 
 function loadStartPoint(map)
@@ -152,7 +198,7 @@ function loadStartPoint(map)
     return defaultPlayer
 end
 
-function createPlayer(startPoint)
+function createCharacter(startPoint)
     local sprite = love.graphics.newImage("jedi.png")
 
     local g = anim8.newGrid(32, 48, sprite:getWidth(), sprite:getHeight())
@@ -164,12 +210,23 @@ function createPlayer(startPoint)
     }
 
     local player = Entity()
-    player:initialize()
-    player:add(Sprite(sprite))
     player:add(Position(startPoint.x, startPoint.y))
     player:add(Velocity(0, 0, SPEED))
-    player:add(Animations(animations.down, animations))
+    player:add(Animations(sprite, animations.down, animations))
+    player:add(Input())
 
+    return player
+end
+
+function createPlayer(startPoint)
+    local player = createCharacter(startPoint)
+    player:add(Interactive())
+    return player
+end
+
+function createNPC(startPoint)
+    local player = createCharacter(startPoint)
+    player:add(AI())
     return player
 end
 
@@ -179,19 +236,27 @@ function love.load()
 
     map = sti("map.lua")
 
+    engine = Engine()
+
     startPoint = loadStartPoint(map)
     local player = createPlayer(startPoint)
-
-    engine = Engine()
     engine:addEntity(player)
 
-    engine:addSystem(InteractiveAnimatedMoveSystem(MoveSystem()))
+    local aiPlayer = createNPC({x = 100, y = 100})
+    engine:addEntity(aiPlayer)
 
-    engine:addSystem(MapSystem(map), "draw")
+    engine:addSystem(AutomatedInputSystem())
+    engine:addSystem(InteractiveInputSystem())
+    engine:addSystem(MoveSystem())
+    engine:addSystem(AnimationSystem())
+    engine:addSystem(PositionSystem())
 
-    map:addCustomLayer("Sprites", 2)
-    local layer = map.layers["Sprites"]
-    engine:addSystem(AnimatedDrawSystem(layer))
+    local layer = map:addCustomLayer("Sprites", 2)
+    engine:addSystem(AnimatedDrawSystem(), "draw")
+
+    function layer:draw()
+        engine:draw()
+    end
 end
 
 function love.update(dt)
@@ -200,5 +265,5 @@ end
 
 function love.draw()
     love.graphics.setColor(255, 255, 255)
-    engine:draw()
+    map:draw()
 end
