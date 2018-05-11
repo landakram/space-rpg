@@ -12,7 +12,7 @@ local gamera = require "lib.gamera"
 
 local SPEED = 100
 
-function createEntityTypes()
+function createComponentTypes()
     Position = Component.create("position", {"x", "y"}, {x = 0, y = 0})
     Velocity = Component.create("velocity", {"vx", "vy", "speed"})
     Animations = Component.create("animations", {"image", "animation", "animations"})
@@ -194,7 +194,6 @@ function collisionSystem()
         local position = entity:get("position")
         local world = entity:get("collision").world
         world:remove(entity)
-        print("bye")
         System.removeEntity(self, entity, component)
     end
 end
@@ -291,7 +290,7 @@ function createNPC(startPoint, world)
 end
 
 function love.load()
-    createEntityTypes()
+    createComponentTypes()
     createSystemTypes()
 
     map = sti("maps/map.lua", {"bump"})
