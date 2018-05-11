@@ -8,6 +8,7 @@ lovetoys.initialize({
 local lume = require "lib.lume"
 local inspect = require "lib.inspect"
 local bump = require "lib.bump"
+local gamera = require "lib.gamera"
 
 local SPEED = 100
 
@@ -222,6 +223,17 @@ function createSystemTypes()
     moveSystem()
     animatedDrawSystem()
     collisionSystem()
+
+    CameraTrackingSystem = class("CameraTrackingSystem", System)
+    function CameraTrackingSystem:requires()
+        return {"interactive", "position"}
+    end
+    function CameraTrackingSystem:update(dt)
+        local player = lume.first(self.targets)
+        local position = player:get("position")
+        local interactive = player:get("interactive")
+        camera:setPosition(position.x, position.y)
+    end
 end
 
 function loadStartPoint(map)
@@ -288,6 +300,8 @@ function love.load()
     local aiPlayer = createNPC({x = 100, y = 100}, world)
     engine:addEntity(aiPlayer)
 
+    engine:addSystem(CameraTrackingSystem())
+
     engine:addSystem(CollisionSystem())
     engine:addSystem(AutomatedInputSystem())
     engine:addSystem(InteractiveInputSystem())
@@ -297,6 +311,10 @@ function love.load()
 
     local layer = map:addCustomLayer("Sprites", 3)
     engine:addSystem(AnimatedDrawSystem(), "draw")
+
+    local w, h = map.tilewidth * map.width, map.tileheight * map.height
+    camera = gamera.new(0, 0, w, h)
+    camera:setScale(1.0)
 
     function layer:draw()
         engine:draw()
@@ -309,5 +327,8 @@ end
 
 function love.draw()
     love.graphics.setColor(255, 255, 255)
-    map:draw()
+
+    camera:draw(function(l, t, w, h)
+            map:draw(-l, -t, camera:getScale(), camera:getScale())
+    end)
 end
