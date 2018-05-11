@@ -7,6 +7,7 @@ lovetoys.initialize({
 })
 local lume = require "lib.lume"
 local inspect = require "lib.inspect"
+local bump = require "lib.bump"
 
 local SPEED = 100
 
@@ -17,6 +18,7 @@ function createEntityTypes()
     Input = Component.create("input", {"movement"}, {movement = {}})
     Interactive = Component.create("interactive", {})
     AI = Component.create("ai", {"movement"}, {movement = {tickTime = 0}})
+    Collision = Component.create("collision", {"world", "w", "h"})
 end
 
 function automatedInputSystem()
@@ -158,6 +160,43 @@ function positionSystem()
     end
 end
 
+function collisionSystem()
+    CollisionSystem = class("CollisionSystem", System)
+
+    function CollisionSystem:requires()
+        return {"collision", "position"}
+    end
+
+    function CollisionSystem:update(dt)
+        for _, entity in pairs(self.targets) do
+            local position = entity:get("position")
+            local world = entity:get("collision").world
+
+            local x, y, _, _ = world:move(entity, position.x, position.y)
+            position.x = x
+            position.y = y
+        end
+    end
+
+    function CollisionSystem:addEntity(entity, category)
+        local position = entity:get("position")
+        local collision = entity:get("collision")
+        local world = collision.world
+        local animation = entity:get("animations").animation
+        world:add(entity, position.x, position.y, collision.w, collision.h)
+
+        System.addEntity(self, entity, category)
+    end
+
+    function CollisionSystem:removeEntity(entity, component)
+        local position = entity:get("position")
+        local world = entity:get("collision").world
+        world:remove(entity)
+        print("bye")
+        System.removeEntity(self, entity, component)
+    end
+end
+
 function animatedDrawSystem()
     AnimatedDrawSystem = class("AnimatedDrawSystem", System)
 
@@ -182,6 +221,7 @@ function createSystemTypes()
     positionSystem()
     moveSystem()
     animatedDrawSystem()
+    collisionSystem()
 end
 
 function loadStartPoint(map)
@@ -193,13 +233,13 @@ function loadStartPoint(map)
         end
     end
     
-    map:removeLayer("Object Layer 1")
+    map:removeLayer("Player")
 
     return defaultPlayer
 end
 
-function createCharacter(startPoint)
-    local sprite = love.graphics.newImage("jedi.png")
+function createCharacter(imagePath, startPoint, world)
+    local sprite = love.graphics.newImage(imagePath)
 
     local g = anim8.newGrid(32, 48, sprite:getWidth(), sprite:getHeight())
     local animations = {
@@ -214,18 +254,19 @@ function createCharacter(startPoint)
     player:add(Velocity(0, 0, SPEED))
     player:add(Animations(sprite, animations.down, animations))
     player:add(Input())
+    player:add(Collision(world, 30, 46))
 
     return player
 end
 
-function createPlayer(startPoint)
-    local player = createCharacter(startPoint)
+function createPlayer(startPoint, world)
+    local player = createCharacter("sprites/jedi.png", startPoint, world)
     player:add(Interactive())
     return player
 end
 
-function createNPC(startPoint)
-    local player = createCharacter(startPoint)
+function createNPC(startPoint, world)
+    local player = createCharacter("sprites/princessleia.png", startPoint, world)
     player:add(AI())
     return player
 end
@@ -234,24 +275,27 @@ function love.load()
     createEntityTypes()
     createSystemTypes()
 
-    map = sti("map.lua")
+    map = sti("maps/map.lua", {"bump"})
+    local world = bump.newWorld()
+    map:bump_init(world)
 
     engine = Engine()
 
     startPoint = loadStartPoint(map)
-    local player = createPlayer(startPoint)
+    local player = createPlayer(startPoint, world)
     engine:addEntity(player)
 
-    local aiPlayer = createNPC({x = 100, y = 100})
+    local aiPlayer = createNPC({x = 100, y = 100}, world)
     engine:addEntity(aiPlayer)
 
+    engine:addSystem(CollisionSystem())
     engine:addSystem(AutomatedInputSystem())
     engine:addSystem(InteractiveInputSystem())
     engine:addSystem(MoveSystem())
     engine:addSystem(AnimationSystem())
     engine:addSystem(PositionSystem())
 
-    local layer = map:addCustomLayer("Sprites", 2)
+    local layer = map:addCustomLayer("Sprites", 3)
     engine:addSystem(AnimatedDrawSystem(), "draw")
 
     function layer:draw()
