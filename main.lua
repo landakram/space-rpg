@@ -19,7 +19,7 @@ function createEntityTypes()
     Input = Component.create("input", {"movement"}, {movement = {}})
     Interactive = Component.create("interactive", {})
     AI = Component.create("ai", {"movement"}, {movement = {tickTime = 0}})
-    Collision = Component.create("collision", {"world", "w", "h"})
+    Collision = Component.create("collision", {"world", "ox", "oy", "w", "h"})
 end
 
 function automatedInputSystem()
@@ -31,7 +31,7 @@ function automatedInputSystem()
     end
 
     function AutomatedInputSystem:requires()
-        return {"ai", "input", "position", "velocity"}
+        return {"ai", "input"}
     end
 
     function AutomatedInputSystem:update(dt)
@@ -171,11 +171,12 @@ function collisionSystem()
     function CollisionSystem:update(dt)
         for _, entity in pairs(self.targets) do
             local position = entity:get("position")
-            local world = entity:get("collision").world
+            local collision = entity:get("collision")
+            local world = collision.world
 
-            local x, y, _, _ = world:move(entity, position.x, position.y)
-            position.x = x
-            position.y = y
+            local x, y, _, _ = world:move(entity, position.x + collision.ox, position.y + collision.oy)
+            position.x = x - collision.ox
+            position.y = y - collision.oy
         end
     end
 
@@ -184,7 +185,7 @@ function collisionSystem()
         local collision = entity:get("collision")
         local world = collision.world
         local animation = entity:get("animations").animation
-        world:add(entity, position.x, position.y, collision.w, collision.h)
+        world:add(entity, position.x + collision.ox, position.y + collision.oy, collision.w, collision.h)
 
         System.addEntity(self, entity, category)
     end
@@ -206,7 +207,13 @@ function animatedDrawSystem()
     end
 
     function AnimatedDrawSystem:draw()
-        for _, entity in pairs(self.targets) do
+        -- Sort by y position for drawing
+        local targets = lume.sort(
+            self.targets,
+            function(a, b) return a:get("position").y < b:get("position").y end
+        )
+        
+        for _, entity in pairs(targets) do
             local position = entity:get("position")
             local animations = entity:get("animations")
 
@@ -266,7 +273,7 @@ function createCharacter(imagePath, startPoint, world)
     player:add(Velocity(0, 0, SPEED))
     player:add(Animations(sprite, animations.down, animations))
     player:add(Input())
-    player:add(Collision(world, 30, 46))
+    player:add(Collision(world, 0, 24, 32, 24))
 
     return player
 end
