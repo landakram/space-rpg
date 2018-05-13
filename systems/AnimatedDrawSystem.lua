@@ -1,4 +1,5 @@
 local lume = require "lib.lume"
+local inspect = require "lib.inspect"
 
 local AnimatedDrawSystem = class("AnimatedDrawSystem", System)
 
@@ -7,13 +8,13 @@ function AnimatedDrawSystem:requires()
 end
 
 function AnimatedDrawSystem:draw()
-   -- Sort by y position for drawing
-   local targets = lume.sort(
-      self.targets,
-      function(a, b) return a:get("position").y < b:get("position").y end
-   )
+   -- TODO this doesn't work
+   -- table.sort(
+   --    self.targets,
+   --    function(a, b) return a:get("position").y < b:get("position").y end
+   -- )
    
-   for _, entity in pairs(targets) do
+   for _, entity in pairs(self.targets) do
       local position = entity:get("position")
       local animations = entity:get("animations")
 
