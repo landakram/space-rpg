@@ -1,10 +1,8 @@
 local TriggerSystem = class("TriggerSystem", System)
 
--- TODO: temporary params to get it working
-function TriggerSystem:initialize(eventManager, sceneStack, scene)
+function TriggerSystem:initialize(eventManager, triggers)
    self.eventManager = eventManager
-   self.sceneStack = sceneStack
-   self.scene = scene
+   self.triggers = triggers
    System.initialize(self)
 end
 
@@ -42,12 +40,9 @@ function TriggerSystem:update(dt)
 
       if trigger.triggered and not trigger.triggeredLastTick then
          local id = trigger.id
-         -- TODO: refactor this and handle these elsewhere,
-         -- like in some event system or in the trigger itself
-         if id == "hut_door" then
-            self.sceneStack:push(self.scene)
-         elseif id == "inside_hut_door" then
-            self.sceneStack:pop()
+         local triggerDefinition = self.triggers[id]
+         if triggerDefinition then
+            triggerDefinition:action()
          end
       end
 

@@ -59,8 +59,8 @@ function Player(startPoint, world)
     return player
 end
 
-function NPC(startPoint, world)
-    local player = Character("sprites/princessleia.png", startPoint, world)
+function NPC(startPoint, spritePath, world)
+    local player = Character(spritePath, startPoint, world)
     player:add(AI())
     return player
 end
@@ -81,15 +81,14 @@ end
 
 local ExploreScene = class("ExploreScene", State)
 
-function ExploreScene:initialize(mapPath, sceneStack)
-   self.mapPath = mapPath
-   self.sceneStack = sceneStack
+function ExploreScene:initialize(definition)
+   self.definition = definition
 end
 
 function ExploreScene:load()
    local engine = Engine()
 
-   self.map = sti(self.mapPath, {"bump"})
+   self.map = sti(self.definition:mapPath(), {"bump"})
    local world = bump.newWorld()
    self.map:bump_init(world)
    local objects = mapUtils.getObjects(self.map)
@@ -108,8 +107,13 @@ function ExploreScene:load()
 
    self.world = world
 
-   local aiPlayer = NPC({x = 100, y = 100}, world)
-   engine:addEntity(aiPlayer)
+   for _, npc in pairs(self.definition:npcs()) do
+      engine:addEntity(
+         NPC(npc.startingPoint, npc.spritePath, world)
+      )
+   end
+
+   engine:addSystem(TriggerSystem(nil, self.definition:triggers()))
 
    engine:addSystem(CameraTrackingSystem(self.camera))
    engine:addSystem(CollisionSystem())
@@ -118,14 +122,6 @@ function ExploreScene:load()
    engine:addSystem(MoveSystem())
    engine:addSystem(AnimationSystem())
    engine:addSystem(PositionSystem())
-
-   engine:addSystem(
-      TriggerSystem(
-         nil,
-         self.sceneStack,
-         ExploreScene("maps/hut.lua", self.sceneStack)
-      )
-   )
 
    local layer = self.map:addCustomLayer("Sprites", 3)
    engine:addSystem(AnimatedDrawSystem(), "draw")

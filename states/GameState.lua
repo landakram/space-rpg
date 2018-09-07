@@ -1,13 +1,17 @@
 local State = require "states.State"
 local Stack = require "states.Stack"
 local ExploreScene = require "states.scenes.ExploreScene"
+local StartPointScene = require "states.scenes.definitions.StartPointScene"
 
 local GameState = class("GameState", State)
 
 function GameState:load()
    print("GameState:load()")
    self.sceneStack = Stack()
-   self.sceneStack:push(ExploreScene("maps/map.lua", self.sceneStack))
+   
+   local sceneDefinition = StartPointScene(self.sceneStack)
+
+   self.sceneStack:push(ExploreScene(sceneDefinition))
 end
 
 function GameState:draw()
