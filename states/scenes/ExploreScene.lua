@@ -88,11 +88,13 @@ end
 function ExploreScene:load()
    local engine = Engine()
 
+   -- Create map
    self.map = sti(self.definition:mapPath(), {"bump"})
    local world = bump.newWorld()
    self.map:bump_init(world)
    local objects = mapUtils.getObjects(self.map)
 
+   -- Create player
    local startPoint = objects.player
    local player = Player(startPoint, world)
    engine:addEntity(player)
@@ -100,21 +102,21 @@ function ExploreScene:load()
    -- Create trigger entities
    local triggers = createTriggers(objects.triggers, world)
    lume.each(triggers, function(t) engine:addEntity(t) end)
+   engine:addSystem(TriggerSystem(nil, self.definition:triggers()))
 
+   -- Create camera
    local w, h = self.map.tilewidth * self.map.width, self.map.tileheight * self.map.height
    self.camera = gamera.new(0, 0, w, h)
    self.camera:setScale(1.25)
 
-   self.world = world
-
+   -- Create NPCs
    for _, npc in pairs(self.definition:npcs()) do
       engine:addEntity(
          NPC(npc.startingPoint, npc.spritePath, world)
       )
    end
 
-   engine:addSystem(TriggerSystem(nil, self.definition:triggers()))
-
+   -- Add systems
    engine:addSystem(CameraTrackingSystem(self.camera))
    engine:addSystem(CollisionSystem())
    engine:addSystem(AutomatedInputSystem())
