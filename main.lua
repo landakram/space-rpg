@@ -1,5 +1,7 @@
 local lovetoys = require "lib.lovetoys.lovetoys"
 local dbg = require "lib.debugger"
+local lurker = require "lib.lurker"
+
 lovetoys.initialize({debug = true, globals = true})
 
 Stack = require "states.Stack"
@@ -13,6 +15,7 @@ function love.load()
 end
 
 function love.update(dt)
+    lurker.update()
     stack:update(dt)
 end
 

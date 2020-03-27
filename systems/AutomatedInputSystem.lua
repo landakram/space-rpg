@@ -24,9 +24,9 @@ function AutomatedInputSystem:update(dt)
                ["right"] = 1,
                ["none"] = 5
          })
-         self.lastTickTime = os.time()
       end
    end
+   self.lastTickTime = os.time()
 end
 
 return AutomatedInputSystem
