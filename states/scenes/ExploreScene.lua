@@ -2,6 +2,7 @@ local State = require "states.State"
 
 local sti = require "lib.sti"
 local anim8 = require "lib.anim8"
+local log = require "lib.log"
 local lume = require "lib.lume"
 local inspect = require "lib.inspect"
 local bump = require "lib.bump"
@@ -10,6 +11,7 @@ local mapUtils = require "utils.map"
 
 local AutomatedInputSystem = require "systems.AutomatedInputSystem"
 local InteractiveInputSystem = require "systems.InteractiveInputSystem"
+local InteractSystem = require "systems.InteractSystem"
 local MoveSystem = require "systems.MoveSystem"
 local AnimationSystem = require "systems.AnimationSystem"
 local PositionSystem = require "systems.PositionSystem"
@@ -23,11 +25,11 @@ local TriggerDrawSystem = require "systems.TriggerDrawSystem"
 local Position = Component.create("position", {"x", "y"}, {x = 0, y = 0})
 local Velocity = Component.create("velocity", {"vx", "vy", "speed"})
 local Animations = Component.create("animations", {"image", "animation", "animations"})
-local Input = Component.create("input", {"movement"}, {movement = {}})
+local Input = Component.create("input", {"movement", "states"}, {movement = "none", states = {}})
 local Interactive = Component.create("interactive", {})
 local AI = Component.create("ai", {"movement"}, {movement = {tickTime = 0}})
 local Collision = Component.create("collision", {"world", "ox", "oy", "w", "h"})
-local Trigger = Component.create("trigger", {"id", "triggered"}, {triggered = false})
+local Trigger = Component.create("trigger", {"id", "definition", "status"}, { status = { triggered = false } })
 
 local SPEED = 150
 

@@ -24,7 +24,7 @@ function love.draw()
 end
 
 function love.keypressed(key, u)
-    if key == "space" then
-        debug.debug()
+    if key == "f1" then
+       dbg()
     end
 end
