@@ -1,8 +1,7 @@
+local log = require "lib.log"
 local TriggerSystem = class("TriggerSystem", System)
 
-function TriggerSystem:initialize(eventManager, triggers)
-   self.eventManager = eventManager
-   self.triggers = triggers
+function TriggerSystem:initialize()
    System.initialize(self)
 end
 
@@ -33,20 +32,15 @@ function TriggerSystem:update(dt)
    for _, entity in pairs(self.targets) do
       local trigger = entity:get("trigger")
 
-      if trigger.triggered then
-         print("triggered", trigger.id)
-      end
+      if trigger.status.triggered and not trigger.triggeredLastTick then
+         log.debug("triggered", trigger.id)
 
-
-      if trigger.triggered and not trigger.triggeredLastTick then
-         local id = trigger.id
-         local triggerDefinition = self.triggers[id]
-         if triggerDefinition then
-            triggerDefinition:action()
+         if trigger.definition then
+            trigger.definition:action()
          end
       end
 
-      trigger.triggeredLastTick = trigger.triggered
+      trigger.triggeredLastTick = trigger.status.triggered
    end
 end
 

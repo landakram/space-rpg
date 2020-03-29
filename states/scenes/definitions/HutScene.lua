@@ -18,6 +18,20 @@ function HutScene:triggers()
       inside_hut_door = {
          action = function()
             self.sceneStack:pop()
+         end,
+         shouldTrigger = function(entity)
+            return entity:get("interactive")
+         end
+      },
+      chest = {
+         collidable = true,
+         shouldTrigger = function(entity)
+            if entity:get("interactive") then
+               local input = entity:get("input")
+               return input and input.states.interact
+            else
+               return false
+            end
          end
       }
    }

@@ -1,3 +1,4 @@
+local lume = require "lib.lume"
 local PositionSystem = class("PositionSystem", System)
 
 function PositionSystem:requires()

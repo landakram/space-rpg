@@ -1,3 +1,6 @@
+local log = require "lib.log"
+local lume = require "lib.lume"
+local inspect = require "lib.inspect"
 local CollisionSystem = class("CollisionSystem", System)
 
 function CollisionSystem:requires()
@@ -9,7 +12,7 @@ function CollisionSystem:update(dt)
    for _, entity in pairs(self.targets.collidable) do
       local trigger = entity:get("trigger")
       if trigger then
-         trigger.triggered = false
+         trigger.status = { triggered = false }
       end
    end
 
@@ -23,7 +26,10 @@ function CollisionSystem:update(dt)
          position.x + collision.ox,
          position.y + collision.oy,
          function(item, other)
-            if other.get and other:get("trigger") then
+            if other.get and
+               other:get("trigger") and
+               not other:get("trigger").definition.collidable
+            then
                return "cross"
             else
                return "slide"
@@ -35,11 +41,12 @@ function CollisionSystem:update(dt)
 
       for i = 1,len do
          local collision = collisions[i]
-         print("collided", collision)
          if collision.other.get then
+            -- log.debug("collided with trigger!")
             local trigger = collision.other:get("trigger")
-            if trigger then
-               trigger.triggered = true
+            if trigger and trigger.definition.shouldTrigger(entity) then
+               trigger.status.triggered = true
+               trigger.status.by = entity
             end
          end
       end

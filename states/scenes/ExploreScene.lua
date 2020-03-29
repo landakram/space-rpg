@@ -33,7 +33,6 @@ local Trigger = Component.create("trigger", {"id", "definition", "status"}, { st
 
 local SPEED = 150
 
-
 function Character(imagePath, startPoint, world)
     local sprite = love.graphics.newImage(imagePath)
 
@@ -67,17 +66,31 @@ function NPC(startPoint, spritePath, world)
     return player
 end
 
-function createTrigger(params, world)
+function createTrigger(params, world, triggerDefinitions)
    local trigger = Entity(nil, "trigger")
    trigger:add(Position(params.x, params.y))
    trigger:add(Collision(world, 0, 0, params.width, params.height))
-   trigger:add(Trigger(params.type))
+
+   local definition = triggerDefinitions[params.type]
+   if not definition then
+      log.error(string.format("No trigger definition found for trigger. Trigger ID: %s", params.type))
+      definition = {}
+   end
+   -- Should probably use a class at this point
+   defaults = {
+      action = function() end,
+      shouldTrigger = function(entity) return true end,
+      collidable = false
+   }
+   definition = lume.merge(defaults, definition)
+
+   trigger:add(Trigger(params.type, definition))
 
    return trigger
 end
 
-function createTriggers(triggers, world)
-   return lume.map(triggers, function(t) return createTrigger(t, world) end)
+function createTriggers(triggers, world, triggerDefinitions)
+   return lume.map(triggers, function(t) return createTrigger(t, world, triggerDefinitions) end)
 end
 
 
@@ -102,9 +115,9 @@ function ExploreScene:load()
    engine:addEntity(player)
 
    -- Create trigger entities
-   local triggers = createTriggers(objects.triggers, world)
+   local triggers = createTriggers(objects.triggers, world, self.definition:triggers())
    lume.each(triggers, function(t) engine:addEntity(t) end)
-   engine:addSystem(TriggerSystem(nil, self.definition:triggers()))
+   engine:addSystem(TriggerSystem())
 
    -- Create camera
    local w, h = self.map.tilewidth * self.map.width, self.map.tileheight * self.map.height
@@ -123,6 +136,7 @@ function ExploreScene:load()
    engine:addSystem(CollisionSystem())
    engine:addSystem(AutomatedInputSystem())
    engine:addSystem(InteractiveInputSystem())
+   engine:addSystem(InteractSystem())
    engine:addSystem(MoveSystem())
    engine:addSystem(AnimationSystem())
    engine:addSystem(PositionSystem())

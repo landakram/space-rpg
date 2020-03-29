@@ -19,6 +19,12 @@ function InteractiveInputSystem:update(dt)
       else
          input.movement = "none"
       end
+
+      if love.keyboard.isDown("space") then
+         input.states.interact = true
+      else
+         input.states.interact = false
+      end
    end
 end
 
