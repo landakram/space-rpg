@@ -8,7 +8,7 @@ return {
   height = 9,
   tilewidth = 32,
   tileheight = 32,
-  nextobjectid = 19,
+  nextobjectid = 21,
   properties = {},
   tilesets = {
     {
@@ -200,7 +200,7 @@ return {
       encoding = "lua",
       data = {
         1758, 1759, 1759, 1759, 1759, 1759, 1759, 1759, 1760,
-        1815, 0, 1935, 0, 0, 0, 0, 0, 1787,
+        1815, 0, 0, 0, 0, 0, 1530, 0, 1787,
         1815, 0, 1963, 0, 0, 0, 0, 0, 1816,
         1815, 0, 0, 0, 0, 0, 0, 0, 1787,
         1815, 0, 0, 0, 0, 0, 0, 0, 1787,
@@ -225,7 +225,7 @@ return {
       encoding = "lua",
       data = {
         0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 1530, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -266,22 +266,9 @@ return {
           type = "",
           shape = "rectangle",
           x = -15.6863,
-          y = 170.308,
+          y = 162.944,
           width = 45.9384,
-          height = 15.6863,
-          rotation = 0,
-          visible = true,
-          properties = {}
-        },
-        {
-          id = 3,
-          name = "",
-          type = "",
-          shape = "rectangle",
-          x = 63.8655,
-          y = 53.7815,
-          width = 31.3725,
-          height = 39.2157,
+          height = 23.0505,
           rotation = 0,
           visible = true,
           properties = {}
@@ -357,9 +344,22 @@ return {
           type = "",
           shape = "rectangle",
           x = 257.703,
-          y = 66.1064,
+          y = 61.8106,
           width = 11.2045,
-          height = 24.6499,
+          height = 28.9457,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 20,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 64.4369,
+          y = 60.7548,
+          width = 29.4569,
+          height = 33.7527,
           rotation = 0,
           visible = true,
           properties = {}
@@ -415,6 +415,31 @@ return {
           visible = true,
           properties = {}
         }
+      }
+    },
+    {
+      type = "tilelayer",
+      name = "Tile Layer 4",
+      x = 0,
+      y = 0,
+      width = 9,
+      height = 9,
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = 0,
+      properties = {},
+      encoding = "lua",
+      data = {
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1935, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0
       }
     }
   }

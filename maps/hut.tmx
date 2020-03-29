@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="9" height="9" tilewidth="32" tileheight="32" infinite="0" nextobjectid="19">
+<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="9" height="9" tilewidth="32" tileheight="32" infinite="0" nextobjectid="21">
  <tileset firstgid="1" source="tiles/hyptosis_tile-art-batch-4.tsx"/>
  <tileset firstgid="901" source="tiles/PC Computer - Yoda Stories - Tileset.tsx"/>
  <tileset firstgid="2105" source="tiles/hyptosis_tile-art-batch-5.tsx"/>
@@ -19,7 +19,7 @@
  <layer name="Tile Layer 2" width="9" height="9">
   <data encoding="csv">
 1758,1759,1759,1759,1759,1759,1759,1759,1760,
-1815,0,1935,0,0,0,0,0,1787,
+1815,0,0,0,0,0,1530,0,1787,
 1815,0,1963,0,0,0,0,0,1816,
 1815,0,0,0,0,0,0,0,1787,
 1815,0,0,0,0,0,0,0,1787,
@@ -32,7 +32,7 @@
  <layer name="Tile Layer 3" width="9" height="9">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,1530,0,0,
+0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,
@@ -47,18 +47,31 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
   <object id="1" x="-2.2409" y="-1.12045" width="15.6863" height="307.003"/>
-  <object id="2" x="-15.6863" y="170.308" width="45.9384" height="15.6863"/>
-  <object id="3" x="63.8655" y="53.7815" width="31.3725" height="39.2157"/>
+  <object id="2" x="-15.6863" y="162.944" width="45.9384" height="23.0505"/>
   <object id="4" x="257.703" y="64.986" width="11.2045" height="25.7703"/>
   <object id="7" x="-21.2885" y="252.101" width="142.297" height="31.3725"/>
   <object id="8" x="164.706" y="253.221" width="126.611" height="33.6134"/>
   <object id="9" x="273.389" y="-36.9748" width="20.1681" height="365.266"/>
   <object id="10" x="-20.1681" y="-12.3249" width="322.689" height="42.577"/>
-  <object id="11" x="257.703" y="66.1064" width="11.2045" height="24.6499"/>
+  <object id="11" x="257.703" y="61.8106" width="11.2045" height="28.9457"/>
+  <object id="20" x="64.4369" y="60.7548" width="29.4569" height="33.7527"/>
  </objectgroup>
  <objectgroup name="Objects" visible="0">
   <object id="14" name="Trigger" type="inside_hut_door" x="131.092" y="281.462" width="26.8908" height="35.8543"/>
   <object id="17" name="Trigger" type="chest" x="190.476" y="33.6134" width="33.6134" height="31.3725"/>
   <object id="18" name="Player" x="128.852" y="224.77" width="31.3725" height="25.7703"/>
  </objectgroup>
+ <layer name="Tile Layer 4" width="9" height="9">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,
+0,0,1935,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
 </map>
