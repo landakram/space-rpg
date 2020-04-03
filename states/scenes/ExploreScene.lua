@@ -9,6 +9,11 @@ local bump = require "lib.bump"
 local gamera = require "lib.gamera"
 local mapUtils = require "utils.map"
 
+local events = require "states.scenes.events"
+
+local InventoryScene = require "states.scenes.InventoryScene"
+local DialogueScene = require "states.scenes.DialogueScene"
+
 local AutomatedInputSystem = require "systems.AutomatedInputSystem"
 local InteractiveInputSystem = require "systems.InteractiveInputSystem"
 local InteractSystem = require "systems.InteractSystem"
@@ -21,6 +26,8 @@ local CollisionSystem = require "systems.CollisionSystem"
 local CameraTrackingSystem = require "systems.CameraTrackingSystem"
 local TriggerSystem = require "systems.TriggerSystem"
 local TriggerDrawSystem = require "systems.TriggerDrawSystem"
+local InventorySystem = require "systems.InventorySystem"
+local ChestSystem = require "systems.ChestSystem"
 
 local Position = Component.create("position", {"x", "y"}, {x = 0, y = 0})
 local Velocity = Component.create("velocity", {"vx", "vy", "speed"})
@@ -78,13 +85,17 @@ function createTrigger(params, world, triggerDefinitions)
    end
    -- Should probably use a class at this point
    defaults = {
-      action = function() end,
+      action = function(trigger) end,
       shouldTrigger = function(entity) return true end,
       collidable = false
    }
    definition = lume.merge(defaults, definition)
 
    trigger:add(Trigger(params.type, definition))
+
+   if definition.components then
+      trigger:addMultiple(definition.components)
+   end
 
    return trigger
 end
@@ -96,8 +107,11 @@ end
 
 local ExploreScene = class("ExploreScene", State)
 
-function ExploreScene:initialize(definition)
+function ExploreScene:initialize(definition, eventManager, sceneStack, playerComponents)
    self.definition = definition
+   self.eventManager = eventManager
+   self.sceneStack = sceneStack
+   self.playerComponents = playerComponents
 end
 
 function ExploreScene:load()
@@ -112,6 +126,8 @@ function ExploreScene:load()
    -- Create player
    local startPoint = objects.player
    local player = Player(startPoint, world)
+   self.player = player
+   player:addMultiple(self.playerComponents)
    engine:addEntity(player)
 
    -- Create trigger entities
@@ -133,13 +149,15 @@ function ExploreScene:load()
 
    -- Add systems
    engine:addSystem(CameraTrackingSystem(self.camera))
-   engine:addSystem(CollisionSystem())
    engine:addSystem(AutomatedInputSystem())
    engine:addSystem(InteractiveInputSystem())
-   engine:addSystem(InteractSystem())
    engine:addSystem(MoveSystem())
    engine:addSystem(AnimationSystem())
    engine:addSystem(PositionSystem())
+   engine:addSystem(CollisionSystem())
+   engine:addSystem(InteractSystem())
+   engine:addSystem(InventorySystem(), "draw")
+   engine:addSystem(ChestSystem(self.eventManager))
 
    local layer = self.map:addCustomLayer("Sprites", 3)
    engine:addSystem(AnimatedDrawSystem(), "draw")
@@ -152,6 +170,117 @@ function ExploreScene:load()
    function layer:draw()
       engine:draw()
    end
+
+   -- Subscriptions
+   --
+   -- TODO: These should def not live here
+   -- Probably some of them should live in systems and the
+   -- more primitive ones should live globally on the GameState
+   self.eventManager:addListener("PushScene", self, ExploreScene.onPushScene)
+   self.eventManager:addListener("PopScene", self, ExploreScene.onPopScene)
+   self.eventManager:addListener(
+      "KeyPressed", self,
+      function(_, event)
+         log.debug("KeyPressed", event.key)
+         if event.key == "e" then
+            self.eventManager:fireEvent(events.ViewInventory())
+         end
+      end
+   )
+   self.eventManager:addListener(
+      "ViewInventory", self,
+      function(_, event)
+         log.debug("ViewInventory")
+         if self.sceneStack:current().class.name ~= "InventoryScene" then
+            self.sceneStack:push(InventoryScene(self.player:get("inventory"), self.eventManager))
+         end
+      end
+   )
+   self.eventManager:addListener(
+      "ExitInventory", self,
+      function(_, event)
+         log.debug("ExitInventory")
+         if self.sceneStack:current().class.name == "InventoryScene" then
+            self.sceneStack:pop()
+         end
+      end
+   )
+   self.eventManager:addListener(
+      "OpenChest", self,
+      function(_, event)
+         log.debug("OpenChest")
+         self.sceneStack:push(
+            DialogueScene(
+               self.eventManager,
+               chestChoice(event.chest, player)
+            )
+         )
+      end
+   )
+   self.eventManager:addListener(
+      "ChestIsEmpty", self,
+      function(_, event)
+         log.debug("ChestIsEmpty")
+         self.sceneStack:push(
+            DialogueScene(
+               self.eventManager,
+               {
+                  type = "simple",
+                  texts = {"The chest is empty."}
+               }
+            )
+         )
+      end
+   )
+end
+
+function chestChoice(chest, player, eventManager)
+   items = chest:get("chest").items
+
+   texts = {"This chest contains the following items:"}
+   for _, item in pairs(items) do
+      log.debug(item.name)
+      table.insert(texts, "\n")
+      table.insert(texts, item.name)
+   end
+
+   return {
+      type = "choice",
+      texts = texts,
+      choices = {
+         {
+            text = "Take",
+            onSelect = function()
+               -- Prob should move to an event
+               lume.push(player:get("inventory").items, unpack(items))
+               chest:get("chest").items = {}
+            end
+         },
+         {
+            text = "Do nothing",
+            onSelect = function() end
+         }
+      }
+   }
+end
+
+function ExploreScene:onPushScene(event)
+   self.sceneStack:push(
+      ExploreScene(
+         event.sceneClass(self.eventManager),
+         self.eventManager,
+         self.sceneStack,
+         self.playerComponents
+      )
+   )
+end
+
+function ExploreScene:onPopScene(event)
+   self.sceneStack:pop()
+end
+
+function ExploreScene:onViewInventory(event)
+   -- self.sceneStack:push(
 end
 
 function ExploreScene:update(dt)

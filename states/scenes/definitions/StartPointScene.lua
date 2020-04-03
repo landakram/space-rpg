@@ -1,3 +1,5 @@
+local events = require "states.scenes.events"
+
 local ExploreScene = require "states.scenes.ExploreScene"
 local HutScene = require "states.scenes.definitions.HutScene"
 
@@ -15,16 +17,14 @@ function StartPointScene:triggers()
    return {
       hut_door = {
          action = function()
-            self.sceneStack:push(
-               ExploreScene(HutScene(self.sceneStack))
-            )
+            self.eventManager:fireEvent(events.PushScene(HutScene))
          end
       }
    }
 end
 
-function StartPointScene:initialize(sceneStack)
-   self.sceneStack = sceneStack
+function StartPointScene:initialize(eventManager)
+   self.eventManager = eventManager
 end
 
 return StartPointScene

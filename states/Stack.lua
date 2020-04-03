@@ -1,3 +1,4 @@
+local log = require "lib.log"
 local class = require "lib.lovetoys.lib.middleclass"
 local Stack = class("Stack")
 
@@ -53,9 +54,10 @@ end
 function Stack:draw()
    for i = 0, #self.states-1 , 1 do
       if self.states[#self.states-i].renderBelow == false then
+         self.backCounter = i
          break
       elseif self.states[#self.states-i].renderBelow == true then
-         self.backCounter = i
+         self.backCounter = i + 1
       end
    end
    for i = self.backCounter, 0 , -1 do

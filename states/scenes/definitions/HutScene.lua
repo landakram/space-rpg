@@ -1,4 +1,7 @@
+local events = require "states.scenes.events"
 local HutScene = class("HutScene", SceneDefinition)
+
+local Chest = Component.create("chest", {"items"})
 
 function HutScene:npcs()
    return {
@@ -16,14 +19,16 @@ end
 function HutScene:triggers()
    return {
       inside_hut_door = {
+         type = "door",
          action = function()
-            self.sceneStack:pop()
+            self.eventManager:fireEvent(events.PopScene())
          end,
          shouldTrigger = function(entity)
             return entity:get("interactive")
          end
       },
       chest = {
+         components = { Chest({{ name = "Scraps of Paper" }}) },
          collidable = true,
          shouldTrigger = function(entity)
             if entity:get("interactive") then
@@ -37,8 +42,8 @@ function HutScene:triggers()
    }
 end
 
-function HutScene:initialize(sceneStack)
-   self.sceneStack = sceneStack
+function HutScene:initialize(eventManager)
+   self.eventManager = eventManager
 end
 
 return HutScene

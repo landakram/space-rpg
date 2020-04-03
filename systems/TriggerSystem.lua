@@ -36,7 +36,7 @@ function TriggerSystem:update(dt)
          log.debug("triggered", trigger.id)
 
          if trigger.definition then
-            trigger.definition:action()
+            trigger.definition:action(trigger)
          end
       end
 

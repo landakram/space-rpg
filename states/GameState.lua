@@ -5,13 +5,33 @@ local StartPointScene = require "states.scenes.definitions.StartPointScene"
 
 local GameState = class("GameState", State)
 
-function GameState:load()
-   print("GameState:load()")
-   self.sceneStack = Stack()
-   
-   local sceneDefinition = StartPointScene(self.sceneStack)
+local Inventory = Component.create(
+   "inventory",
+   {"items", "size"},
+   {
+      items = {
+         { name = "Candle"},
+         { name = "Sand"}
+      },
+      size = 10
+   }
+)
 
-   self.sceneStack:push(ExploreScene(sceneDefinition))
+function GameState:initialize(eventManager)
+   self.eventManager = eventManager
+   self.sceneStack = Stack()
+end
+
+function GameState:load()
+   local sceneDefinition = StartPointScene(self.eventManager)
+   self.sceneStack:push(
+      ExploreScene(
+         sceneDefinition,
+         self.eventManager,
+         self.sceneStack,
+         { Inventory() }
+      )
+   )
 end
 
 function GameState:draw()

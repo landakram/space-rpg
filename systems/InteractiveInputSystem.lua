@@ -1,3 +1,4 @@
+local log = require "lib.log"
 local InteractiveInputSystem = class("InteractiveInputSystem", System)
 
 function InteractiveInputSystem:requires()
