@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="32" tileheight="32" infinite="0" nextobjectid="36">
+<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="32" tileheight="32" infinite="0" nextobjectid="37">
  <tileset firstgid="1" source="tiles/hyptosis_tile-art-batch-1.tsx"/>
  <tileset firstgid="901" source="tiles/PC Computer - Yoda Stories - Tileset.tsx"/>
  <tileset firstgid="2105" source="tiles/hyptosis_tile-art-batch-3.tsx"/>
@@ -133,7 +133,7 @@
   <object id="33" x="1024.03" y="305.988" width="61.9486" height="183.968"/>
  </objectgroup>
  <objectgroup name="Objects" visible="0">
-  <object id="8" name="Player" x="543.184" y="8.65741" width="32" height="32"/>
+  <object id="8" name="Player" x="1037.94" y="586.967" width="32" height="32"/>
   <object id="9" x="314" y="1300"/>
   <object id="35" name="Trigger" type="hut_door" x="1029.91" y="496.343" width="54.4396" height="26.2812">
    <properties>
